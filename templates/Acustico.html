@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Basic -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <!-- Mobile Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <!-- Site Metas -->
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <link rel="shortcut icon" href="{{url_for('static',filename= 'images/favicon.png')}}" type="">
+
+  <title> Vocally </title>
+
+  <!-- bootstrap core css -->
+  <link rel="stylesheet" type="text/css" href="{{url_for('static',filename= 'css/bootstrap.css')}}" />
+
+  <!-- fonts style -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!--owl slider stylesheet -->
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+
+  <!-- font awesome style -->
+  <link href="{{url_for('static',filename= 'css/font-awesome.min.css')}}" rel="stylesheet" />
+
+  <!-- Custom styles for this template -->
+  <link href="{{ url_for('static',filename= 'css/style.css') }}" rel="stylesheet" />
+  <!-- responsive style -->
+  <link href="{{url_for('static',filename= 'css/responsive.css')}}" rel="stylesheet" />
+
+</head>
+
+<body class="sub_page">
+
+  <div class="hero_area">
+
+    <div class="hero_bg_box">
+      <div class="bg_img_box">
+        <img src="{{url_for('static',filename= 'images/hero-bg.png')}}" alt="">
+      </div>
+    </div>
+
+    <!-- header section strats -->
+    <header class="header_section">
+      <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg custom_nav-container ">
+          <a class="navbar-brand" href="{{url_for('index')}}">
+            <span>
+              Vocally
+            </span>
+          </a>
+
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class=""> </span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav  ">
+              <li class="nav-item ">
+                <a class="nav-link" href="{{url_for('index')}}">Inicio</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{url_for('about')}}"> Sobre Nosotros</a>
+              </li>
+              <li class="nav-item active">
+                <a class="nav-link" href="{{url_for('service')}}">Servicios <span class="sr-only">(current)</span> </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#"> <i class="fa fa-user" aria-hidden="true"></i> Login</a>
+              </li>
+              <form class="form-inline">
+                <button class="btn  my-2 my-sm-0 nav_search-btn" type="submit">
+                  <i class="fa fa-search" aria-hidden="true"></i>
+                </button>
+              </form>
+            </ul>
+          </div>
+        </nav>
+      </div>
+    </header>
+    <!-- end header section -->
+  </div>
+
+
+  <!-- service section -->
+
+  <section class="service_section layout_padding">
+    <div class="service_container">
+      <div class="container ">
+        <div class="heading_container heading_center">
+          <h2>
+            EXAMEN ACUSTICO
+          </h2>
+          <div style="text-align: right;">
+            <h3>Intrucciones</h3>
+          </div>
+          <div style="text-align: left;">   
+            <ol>
+              <li>Encuentra un lugar tranquilo y sin ruidos externos para realizar la grabación.</li>
+              <li>Prepara tu dispositivo de grabación (puede ser un teléfono móvil, una computadora, una grabadora de voz, etc.).</li>
+              <li>Inicia la grabación y, cuando estés listo, pronuncia claramente la letra "a", despues de ella puedes realizar la grabacion de la letra"s"</li>
+              <li>Después de cada grabación, analiza la gráfica de la grabación para asegurarte de que sea clara y no presente problemas técnicos evidentes.</li>
+              <li>Consulta la tabla de resultados que se proporciona a continuación.</li>
+            </ol>
+          </div>
+        </div>
+  </section>
+
+    
+
+  <section>
+    <div class="section-content text-center">
+      <div class="row">
+        <div class="col-md-3 text-right">
+          <div>
+            <button id="recordButton" class="round-button" onclick="toggleRecording()">
+              <img id="recordImage" src="{{url_for('static',filename= 'images/play.png')}}" alt="">
+            </button>
+          </div>
+          <div class="col-md-12 text-center mt-3">
+            <button id="calculateButton" class="round-button" onclick="analizarAudio()" font-family: Arial, sans-serif; >
+              <img id="Calculate" src="{{url_for('static',filename='images/Calcular.png')}}" alt="" >
+              Calcular
+            </button>
+            <div class="col-md-9">
+              <!-- Div para la tabla autogenerada -->
+              <div id="tablautogenerada"></div>
+          </div>
+          </div>
+        </div>
+        <div class="col-md-9">
+          <canvas id="soundWave" width="600" height="200" style="margin-top: -40px;"></canvas>
+          <script>
+            let audioChunks = [];
+            let mediaRecorder;
+            let isRecording = false;
+
+            function enviarAudio(audioBlob) {
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.webm');
+
+                fetch('/guardar_audio', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Archivo de audio guardado correctamente:', data);
+                })
+                .catch(error => console.error('Error al guardar el archivo de audio:', error));
+            }
+
+            function convertirWebMtoWAV() {
+                // Realiza una solicitud POST al servidor Flask para la conversión
+                fetch('/convertir_webm_a_wav', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Mensaje del servidor:', data.mensaje);
+                    // Aquí puedes realizar cualquier acción adicional después de la conversión
+                })
+                .catch(error => console.error('Error en la conversión:', error));
+            }
+
+            function toggleRecording() {
+                if (!isRecording) {
+                    startRecording();
+                } else {
+                    stopRecording();
+                }
+                isRecording = !isRecording;
+            }
+
+            function startRecording() {
+                audioChunks = [];
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    mediaRecorder = new MediaRecorder(stream);
+
+                    mediaRecorder.ondataavailable = function(event) {
+                        audioChunks.push(event.data);
+                    }
+
+                    mediaRecorder.onstop = function() {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+
+                        const audio = new Audio(audioUrl);
+                        audio.controls = true;
+                        document.body.appendChild(audio);
+
+                        const audioContext = new AudioContext();
+                        const reader = new FileReader();
+
+                        reader.onload = function() {
+                            audioContext.decodeAudioData(reader.result, function(buffer) {
+                                drawAudio(buffer.getChannelData(0));
+                            });
+                        }
+                        reader.readAsArrayBuffer(audioBlob);
+                    }
+                    mediaRecorder.start();
+                    setTimeout(stopRecording, 10000);
+                    document.getElementById('recordImage').src = "{{url_for('static',filename= 'images/stop.png')}}";
+                })
+                .catch(function(err) {
+                    console.log('Error al acceder al micrófono: ', err);
+                });
+            }
+
+            function stopRecording() {
+                mediaRecorder.stop();
+                document.getElementById('recordImage').src = "{{url_for('static',filename= 'images/play.png')}}";
+                enviarAudio(new Blob(audioChunks, { type: 'audio/webm' }));
+                convertirWebMtoWAV();
+            }
+
+            function drawAudio(audioData) {
+                const canvas = document.getElementById('soundWave');
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.beginPath();
+                ctx.moveTo(0, (audioData[0] + 1) * height / 2);
+
+                for (let i = 1; i < audioData.length; i++) {
+                    const x = (i / audioData.length) * width;
+                    const y = (audioData[i] + 1) * height / 2;
+                    ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = '#000';
+                ctx.stroke();
+
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#000';
+                ctx.fillText('Tiempo (segundos)', width / 2, height - 4);
+                ctx.fillText('Amplitud', 15, height / 2);
+            }
+            function convertirWebMtoWAV() {
+                // Realiza una solicitud POST al servidor Flask para la conversión
+                fetch('/convertir_webm_a_wav', {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Mensaje del servidor:', data.mensaje);
+                    // Aquí puedes realizar cualquier acción adicional después de la conversión
+                })
+                .catch(error => console.error('Error en la conversión:', error));
+            }
+            function analizarAudio() {
+                fetch('/analizar_audio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // Puedes enviar datos adicionales aquí si es necesario
+                })
+                .then(response => response.json())
+                .then(data => {
+                    generarTabla(data);
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            // Función para generar la tabla con los resultados recibidos del servidor
+            function generarTabla(resultados) {
+                // Obtener la referencia del elemento de la tabla en el HTML
+                var tabla = document.getElementById('tablautogenerada');
+
+                // Crear las filas y celdas de la tabla con los resultados
+                var contenidoTabla = '';
+                contenidoTabla += '<table>'; // Agrega el inicio de la tabla
+                contenidoTabla += '<tr><th>Jitt</th><td>' + resultados.jitt + '</td></tr>';
+                contenidoTabla += '<tr><th>Jitta</th><td>' + resultados.jitta + '</td></tr>';
+                contenidoTabla += '<tr><th>Rap</th><td>' + resultados.rap + '</td></tr>';
+                contenidoTabla += '<tr><th>Shimmer</th><td>' + resultados.shimmer + '</td></tr>';
+                contenidoTabla += '<tr><th>PPQ5</th><td>' + resultados.ppq5 + '</td></tr>';
+                contenidoTabla += '<tr><th>PPQ3</th><td>' + resultados.ppq3 + '</td></tr>';
+                //contenidoTabla += '<tr><th>Relación Señal Ruido</th><td>' + resultados.relacion_senal_ruido + '</td></tr>';
+                contenidoTabla += '<tr><th>Distorción Armónica</th><td>' + resultados.distorsion_armonica + '</td></tr>';
+                contenidoTabla += '<tr><th>Potencia</th><td>' + resultados.potencia + '</td></tr>';
+                contenidoTabla += '<tr><th>Frecuencia Muestreo</th><td>' + resultados.frecuenciamuestreo + '</td></tr>';
+                contenidoTabla += '<tr><th>Mean</th><td>' + resultados.mean + '</td></tr>';
+                contenidoTabla += '</table>'; // Agrega el fin de la tabla
+                // Insertar el contenido de la tabla en el HTML
+                tabla.innerHTML = contenidoTabla;
+            }
+          </script>
+        </div>
+      </div>
+    </div>
+    
+  </section>
+
+  
+
+  <section class="info_section layout_padding2">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 col-lg-3 info_col">
+          <div class="info_contact">
+            <h4>
+              Address
+            </h4>
+            <div class="contact_link_box">
+              <a href="https://maps.app.goo.gl/Bbr1d4wWWUAVUa7Z6">
+                <i class="fa fa-map-marker" aria-hidden="true"></i>
+                <span>
+                  Ubicación
+                </span>
+              </a>
+              <a href="">
+                <i class="fa fa-phone" aria-hidden="true"></i>
+                <span>
+                  Contacto +57 3005536422
+                </span>
+              </a>
+              <a href="">
+                <i class="fa fa-envelope" aria-hidden="true"></i>
+                <span>
+                  voice@gmail.com
+                </span>
+              </a>
+            </div>
+          </div>
+          <div class="info_social">
+            <a href="">
+              <i class="fa fa-facebook" aria-hidden="true"></i>
+            </a>
+            <a href="">
+              <i class="fa fa-twitter" aria-hidden="true"></i>
+            </a>
+            <a href="">
+              <i class="fa fa-linkedin" aria-hidden="true"></i>
+            </a>
+            <a href="">
+              <i class="fa fa-instagram" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-2 mx-auto info_col">
+          <div class="info_link_box">
+            <h4>
+              Links
+            </h4>
+            <div class="info_links">
+              <a class="active" href="{{url_for('index')}}">
+                Inicio
+              </a>
+              <a class="" href="{{url_for('about')}}">
+                Sobre Nosotros
+              </a>
+              <a class="" href="{{url_for('service')}}">
+                Servicios
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3 info_col ">
+          <h4>
+            Subscribete
+          </h4>
+          <form action="#">
+            <input type="text" placeholder="Enter email" />
+            <button type="submit">
+              Subscribete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- end info section -->
+
+
+  <!-- jQery -->
+  <script type="text/javascript" src="{{url_for('static',filename= 'js/jquery-3.4.1.min.js')}}"></script>
+  <!-- popper js -->
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+  </script>
+  <!-- bootstrap js -->
+  <script type="text/javascript" src="{{url_for('static',filename= 'js/bootstrap.js')}}"></script>
+  <!-- owl slider -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js">
+  </script>
+  <!-- custom js -->
+  <script type="text/javascript" src="{{url_for('static',filename= 'js/custom.js')}}"></script>
+  <!-- Google Map -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap">
+  </script>
+  <!-- End Google Map -->
+
+</body>
+
+</html>
