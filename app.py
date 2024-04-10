@@ -33,7 +33,7 @@ def team():
 
 @app.route('/Acustico')
 def acustico():
-    return render_template('acustico.html')
+    return render_template('Acustico.html')
 
 # Ruta para manejar la solicitud de análisis de audio
 @app.route('/analizar_audio', methods=['POST'])
