@@ -1,5 +1,6 @@
-Flask==2.0.2
-numpy==1.14.1
-matplotlib==3.5.1
-scipy==1.7.3
+Flask==3.0.3
+numpy==1.26.4
+matplotlib==3.8.4
+scipy==1.13.0
 pydub==0.25.1
+gunicorn==21.2.0
